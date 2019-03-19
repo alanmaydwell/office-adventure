@@ -9,6 +9,8 @@ import random
 
 # (1) Need to add some conditional stuff. For example exit through the
 # security barriers only becomes possible if pass used
+# Defined "obstacles" which depend on - location / item present in location (and sate of item)
+# and can be overcome by - item in player inventory or action by player
 
 
 # (2) Need to improve items
@@ -17,10 +19,13 @@ import random
 # - want to have option of more detailed description
 #  Something like
 items = {
+    "pass": {"description": "security pass bearing name name 'Rowley Birkin'.",
+             "statuses": ["movable"]
+             },
+    
     "cake": {"description": "round cake with green icing",
-             "edible": True,
-             "movable": True,
-             "contains": ["locker key"]
+             "statuses": ["movable"],
+             "things": ["locker key"]
              }
     
     }
@@ -28,9 +33,12 @@ items = {
 
 # Location definitions
 locations = {
-    "Start": {"name": "Entryway", "description": "A dull office reception. Automatic barriers bar the way forward.",
+    "Start": {"name": "Entryway", "description": "A dull office foyer with a seemingly deserted reception desk. Automatic barriers prevent ne'er-do-wells from wandering further.",
               "things": ["pass"],
-              "exits": {"north": "Atrium", "south": "Outside"}
+              "exits": {"north": "Atrium", "south": "Outside"},
+              "obstacles": {"north": {"need": "pass",
+                                      "pass_text": "The pass enables you to cross the security gates.",
+                                      "fail_text": "The security gates bar your way."}},
               },
     
     "Outside": {"name": "Outside", "description": "The street outside.",
@@ -39,22 +47,26 @@ locations = {
                 },
     
     "Atrium": {"name": "Atrium", "description": "Spacious area. At the centre there is a sculpture made from giant wooden coat-hangers.",
-              "things": ["hatstand", "mop", "cashpoint"],
+              "things": [],
               "exits": {"north": "Coffee Shop", "south": "Start", "east": "Stairwell (G)"}
-              }, 
+              },
+    
     "Coffee Shop": {"name": "Coffee Shop", "description": "Crumbs litter the floor but there is no sign of food nor drink.",
-                   "things": ["spoon"],
+                   "things": ["cake"],
                    "exits": {"south": "Atrium"}
                    },
+    
     "Stairwell (G)": {"name": "Stairwell (G)", "description": "Dismal stairwell. A sign extols the virtues of using the stairs rather than the lifts.",
                       "things": [],
                       "exits": {"west": "Start", "up": "Stairwell (1)", "down": "Stairwell (B)"}
                       },
+    
     "Stairwell (1)": {"name": "Stairwell (1)",
                       "description": "The wall is adorned with a mesmerising pattern of triangles.",
                       "things": [],
                       "exits": {"down": "Stairwell (G)"},
                       },
+    
     "Stairwell (B)": {"name": "Stairwell (B)", "description": "Bottom of stairwell. Rather dingy with bare concrete walls.",
                       "things": [],
                       "exits": {"up": "Stairwell (G)"}
@@ -62,6 +74,10 @@ locations = {
 
 }
 
+
+
+
+        
 
 class Adventure(object):
     """Text Adventure"""
@@ -122,9 +138,9 @@ Type 'help' for some info."""
         """Get input from user"""
         words = input(prompt)
         words = words.strip().lower()
-        self.current_input = words.split(" ")
+        self.current_input = words.split()
         #Pad to always have at least two empty strings
-        self.current_input = self.current_input + [""] * (2 - len(self.current_input))
+        self.current_input.extend([""] * (2 - len(self.current_input)))
 
     def available_exits(self):
         """Return exits available from current location"""
@@ -143,6 +159,16 @@ Type 'help' for some info."""
             # Convert single letter noun back into full direction name (eg "n" to "north")
             if len(noun) == 1:
                 noun = {d[0]:d for d in self.directions}.get(noun, "")
+                
+            # Check for blocking condition
+            obstacle = self.current_location.get("obstacles", {}).get(noun, {})
+            if obstacle:
+                if obstacle["need"] in self.inventory:
+                    self.show(obstacle["pass_text"])
+                else:
+                    self.show(obstacle["fail_text"])
+                    return
+            
             # See if there is an available destination in chosen direction
             destination = self.current_location["exits"].get(noun, "")
             # If destination available, move to it
@@ -150,7 +176,7 @@ Type 'help' for some info."""
                 self.current_location = locations.get(destination)
                 # Invalid destination - should not happen if data is right
                 if not self.current_location:
-                    print("Location not found:", destination)
+                    print("GAME ERROR - location not found:", destination)
                 self.display_info()
             else:
                 self.show("Can't go {}.".format(noun))
@@ -196,6 +222,14 @@ Type 'help' for some info."""
                 else:
                     self.show("No {} to pick up.".format(noun))
 
+
+        def v_examine(item):
+            """Display item's description, if item available"""
+            if item in self.inventory or item in self.current_location.get("things", []):
+                self.show("A " + items[item]["description"])
+            else:
+              self.show("Can't see {} to examine.".format(item))  
+
         def v_exits(_):
             """Display available exists from current location"""
             self.show("Available exits: " + ", ".join(self.available_exits()))
@@ -240,6 +274,7 @@ Type 'help' for some info."""
         verb_to_fn_map = {"exits": v_exits,
                   "go": v_go,
                   "get": v_take,
+                  "examine": v_examine,
                   "help": v_help,
                   "inv": v_inv,
                   "inventory": v_inv,
@@ -262,12 +297,6 @@ Type 'help' for some info."""
                                   "Kindly rephrase."])
             self.show(message)
 
-
-    def specific_actions(self):
-        """Add specific event handling that depends on things like
-        location, item, verb (time?)
-        """
-        pass
 
 if __name__ == "__main__":
     go = Adventure()
