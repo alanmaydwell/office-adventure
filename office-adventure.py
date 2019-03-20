@@ -1,95 +1,42 @@
 #!/usr/bin/env python3
 
 """"
-Text Adventure
+Simple verb-noun text adventure
+Relies on items defined in items dictionary and locations
+defined in locations dictionary, imported from adventure_data.py.
 """
 
+# Improvements to make?
+# More verbs - capability to use items
+# Containers - items can hold other items
+# More complex interactions
+# Possibly have classes for items and/or locations rather than dictionaries
+
+
 import random
-
-
-# (1) Need to add some conditional stuff. For example exit through the
-# security barriers only becomes possible if pass used
-# Defined "obstacles" which depend on - location / item present in location (and sate of item)
-# and can be overcome by - item in player inventory or action by player
-
-
-# (2) Need to improve items
-# - want to be able to specify which verbs work with an item
-# - want to be able to use an item as container from item(s)
-# - want to have option of more detailed description
-#  Something like
-items = {
-    "pass": {"description": "security pass bearing name name 'Rowley Birkin'.",
-             "statuses": ["movable"]
-             },
-    
-    "cake": {"description": "round cake with green icing",
-             "statuses": ["movable"],
-             "things": ["locker key"]
-             }
-    
-    }
-
-
-# Location definitions
-locations = {
-    "Start": {"name": "Entryway", "description": "A dull office foyer with a seemingly deserted reception desk. Automatic barriers prevent ne'er-do-wells from wandering further.",
-              "things": ["pass"],
-              "exits": {"north": "Atrium", "south": "Outside"},
-              "obstacles": {"north": {"need": "pass",
-                                      "pass_text": "The pass enables you to cross the security gates.",
-                                      "fail_text": "The security gates bar your way."}},
-              },
-    
-    "Outside": {"name": "Outside", "description": "The street outside.",
-                "things": [],
-                "exits": {"north": "Start"}
-                },
-    
-    "Atrium": {"name": "Atrium", "description": "Spacious area. At the centre there is a sculpture made from giant wooden coat-hangers.",
-              "things": [],
-              "exits": {"north": "Coffee Shop", "south": "Start", "east": "Stairwell (G)"}
-              },
-    
-    "Coffee Shop": {"name": "Coffee Shop", "description": "Crumbs litter the floor but there is no sign of food nor drink.",
-                   "things": ["cake"],
-                   "exits": {"south": "Atrium"}
-                   },
-    
-    "Stairwell (G)": {"name": "Stairwell (G)", "description": "Dismal stairwell. A sign extols the virtues of using the stairs rather than the lifts.",
-                      "things": [],
-                      "exits": {"west": "Start", "up": "Stairwell (1)", "down": "Stairwell (B)"}
-                      },
-    
-    "Stairwell (1)": {"name": "Stairwell (1)",
-                      "description": "The wall is adorned with a mesmerising pattern of triangles.",
-                      "things": [],
-                      "exits": {"down": "Stairwell (G)"},
-                      },
-    
-    "Stairwell (B)": {"name": "Stairwell (B)", "description": "Bottom of stairwell. Rather dingy with bare concrete walls.",
-                      "things": [],
-                      "exits": {"up": "Stairwell (G)"}
-                      }
-
-}
-
-
-
-
-        
+# Import the game data
+from adventure_data import items, locations
 
 class Adventure(object):
-    """Text Adventure"""
+    """Text Adventure
+    Relies on data in items and locations dictionaries.
+    Args:
+        start_location - dictionary key of start location from locations dict
+    """
     def __init__(self, start_location="Start"):
+        # Movement directions supported
         self.directions = ["north", "south", "east", "west", "up", "down"]
+        # Player's location
         self.current_location = locations.get(start_location)
+        # Holds last input from user as dictionary of words
         self.current_input = []
+        # Player inventory
         self.inventory = []
+        # Tracks number of moves between locations
+        self.move_count = 0
         # Start game
         self.keep_going = True
         self.run_game()
-        self.show("Bye!")
 
     def run_game(self):
         """Main game loop"""
@@ -98,6 +45,20 @@ class Adventure(object):
         while self.keep_going:
             self.get_input()
             self.parse()
+            self.extra_stuff()
+        # End message
+        self.show("Bye!")
+            
+    def extra_stuff(self):
+        """Do some extra stuff - random atmosphere messages"""
+        if self.move_count > 10:
+            option = random.randint(1, 20)
+            if option == 1:
+                self.show("The lights flicker ominously but then recover.")
+            elif option == 2:
+                self.show("Did something move in the shadows?")
+            elif option == 3:
+                self.show("What was that noise, 'Iä! Iä! Cthulhu fhtagn'?")
 
     def show(self, text):
         """Display output - currently just uses print"""
@@ -119,21 +80,22 @@ Goal: get your laptop and go home.
 
 Type 'help' for some info."""
         self.show(text)
-        self.show("")
 
     def display_info(self):
         """Show information about current location"""
         cl = self.current_location
-        self.show(cl.get("name"))
+        # Show locations name and description
+        self.show("\n[" + cl.get("name") + "]")
         self.show(cl.get("description"))
-        # Show items
+        # Show items present
         things = cl.get("things", "")
         if things:
             self.show("You can see: " + ", ".join(things))
-        # Show exits (needs improving - currently shows location key rather than associated name)
-        self.show(". ".join(["{} to {}".format(k.capitalize(), v)
-                             for k,v in cl.get("exits", {}).items()]))
-
+        # Show exits
+        self.show("Obvious exits: " +
+                  " - ".join(["{} to {}".format(direction.capitalize(), locations[location]["name"])
+                             for direction, location in cl.get("exits", {}).items()]))
+        
     def get_input(self, prompt=">"):
         """Get input from user"""
         words = input(prompt)
@@ -148,14 +110,21 @@ Type 'help' for some info."""
                 if e in self.current_location["exits"]]
 
     def parse(self):
-        """Simple verb-noun parser"""
+        """Simple verb-noun parser.
+        Processes contents of self.current_input.
+        """
         # Local "verb" functions
         def v_go(noun):
             """Try to move to a new location.
+            Ability to move can be affected by optional "obstacle" location setting.
             Args:
                 noun - either one of the standard directions from self.directions or
                        initial letter of a direction (e.g. "n" or "north")
             """
+            # Do nothing if no noun
+            if not noun:
+                self.show("Go where? Direction needed.")
+                return
             # Convert single letter noun back into full direction name (eg "n" to "north")
             if len(noun) == 1:
                 noun = {d[0]:d for d in self.directions}.get(noun, "")
@@ -167,6 +136,10 @@ Type 'help' for some info."""
                     self.show(obstacle["pass_text"])
                 else:
                     self.show(obstacle["fail_text"])
+                    # Teleport to new location if one set on fail condition
+                    if obstacle.get("location_after_fail", ""):
+                        self.current_location = locations.get(obstacle["location_after_fail"])
+                        self.display_info()
                     return
             
             # See if there is an available destination in chosen direction
@@ -174,6 +147,8 @@ Type 'help' for some info."""
             # If destination available, move to it
             if destination:
                 self.current_location = locations.get(destination)
+                # Increment move count
+                self.move_count += 1
                 # Invalid destination - should not happen if data is right
                 if not self.current_location:
                     print("GAME ERROR - location not found:", destination)
@@ -186,7 +161,7 @@ Type 'help' for some info."""
             # Drop "all"
             if noun == "all":
                 if self.inventory:
-                    # extend method can be used to combine elements of two lists
+                    # handy - extend method can be used to combine elements of two lists
                     # (unlike append which puts list inside list)
                     self.show("You drop: " + ", ".join(self.inventory))
                     self.current_location.get("things", []).extend(self.inventory)
@@ -222,7 +197,6 @@ Type 'help' for some info."""
                 else:
                     self.show("No {} to pick up.".format(noun))
 
-
         def v_examine(item):
             """Display item's description, if item available"""
             if item in self.inventory or item in self.current_location.get("things", []):
@@ -237,6 +211,7 @@ Type 'help' for some info."""
         def v_help(_):
             """Display some help text"""
             self.show("Game uses simple verb-noun text adventure input.")
+            self.show("Some areas can only be accessed if you possess a particular item.")
             self.show("Known verbs: " + ", ".join(verb_to_fn_map.keys()))
             self.show("Known directions: "
                       + ", ".join(self.directions)
@@ -269,7 +244,7 @@ Type 'help' for some info."""
             ci[1] = ci[0]
             ci[0] = "go"
 
-        # Map verbs to their coresponding functions
+        # Map verbs from user input to their coresponding local functions
         # Can be multi-to-one to handle synonyms (e.g. get, take)
         verb_to_fn_map = {"exits": v_exits,
                   "go": v_go,
@@ -285,9 +260,9 @@ Type 'help' for some info."""
             }
 
         # Call "verb" function and send noun as argument
-        fn = verb_to_fn_map.get(ci[0], "")
-        if fn:
-            fn(ci[1])
+        verb_fn = verb_to_fn_map.get(ci[0], "")
+        if verb_fn:
+            verb_fn(ci[1])
         # Message when verb not recognised
         else:
             message = random.choice(["Don't undersand what you said.",
