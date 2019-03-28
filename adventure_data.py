@@ -4,19 +4,39 @@ Holds details of locations and items
 One fragment of text taken from Annihilation by Jeff Vandermeer.
 """
 
+
+# Introductory text
+intro_text = """Tickety-Boo
+
+Following an enjoyable evening carousing in a local pub you
+have returned to the office to retrieve you laptop which you
+prudently left in your locker.
+
+The building seems eerily unfamiliar at this hour but
+surely this is a simple task even though you are somewhat
+befuddled.
+
+Goal: get your laptop and go home.
+
+Type 'help' for some info."""
+
+
+
 # Items
-# Each item must have a description. Other values, e.g. "statuses" not currently used.
+# Each item must have a name and description. Other values, e.g. "statuses" not currently used.
 items = {
-    "pass": {"description": "security pass bearing name name 'Rowley Birkin'.",
+    "pass": {"name": "Security Pass",
+             "description": "Security pass bearing name name 'Rowley Birkin'.",
              "statuses": ["movable"]
              },
     
-    "cake": {"description": "round cake with green icing",
+    "cake": {"name": "Green Cake",
+             "description": "Round cake with green icing",
              "statuses": ["movable"],
              "things": ["locker key"]
              },
     
-    "fish": {"description": "somewhat crimson in hue"}
+    "fish": {"name": "Herring", "description": "Somewhat crimson in hue"}
 
     }
 
@@ -35,7 +55,7 @@ locations = {
                                       "pass_text": "The pass enables you to cross the security gates.",
                                       "fail_text": "The security gates bar your way."},
                             "south": {"need": "laptop",
-                                      "pass_text": "Well done - mission accomplished!. You've retrieved your laptop and left the building. You now just have to make your way home (in yet-to-be-written sequel).",
+                                      "pass_text": "Well done - mission accomplished!. You've retrieved your laptop and left the building. You now just have to make your way home (in a yet-to-be-written sequel).",
                                       "fail_text": "You're not leaving without your laptop - that's the whole point!",
                                       }
                             },
@@ -55,7 +75,7 @@ locations = {
                   "exits": {"east": "Atrium"}
                   },
     
-    "Coffee Shop": {"name": "Coffee Shop", "description": "Crumbs litter the floor but there is no sign of food nor drink.",
+    "Coffee Shop": {"name": "Coffee Shop", "description": "Crumbs litter the floor but the shelves are depleted.",
                    "things": ["cake"],
                    "exits": {"south": "Atrium"}
                    },
@@ -80,7 +100,7 @@ locations = {
                       },
     
     "Stairwell (3)": {"name": "Stairwell (3)",
-                      "description": "The wall is adorned with a mesmerising pattern of triangles, slightly different from those on the second floor.",
+                      "description": "The wall is adorned with a mesmerising pattern of triangles, slightly different from those on the second floor, and might also owe more to Escher than Euclid.",
                       "things": [],
                       "exits": {"down": "Stairwell (2)", "up": "Stairwell (4)", "north": "Vortex"},
                       "obstacles": {"up":
@@ -94,7 +114,12 @@ locations = {
 
     "Stairwell (B)": {"name": "Stairwell (B)", "description": "Bottom of stairwell. Rather dingy with bare concrete walls.",
                       "things": [],
-                      "exits": {"up": "Stairwell (G)"}
+                      "exits": {"up": "Stairwell (G)", "north": "Carpark"}
+                      },
+
+    "Carpark": {"name": "Carpark", "description": "Underground carpark. No cars are present.",
+                      "things": ["fish"],
+                      "exits": {"south": "Stairwell (B)"}
                       },
 
 
@@ -105,7 +130,7 @@ locations = {
 
 
     "Vortex": {"name": "Vortex", "description": """A swirling inter-dimensional vortex beyond the capacity of human perception.
-Would make a nice screen saver, although the hypnotic compulsion to dive in might be a bit distracting.""",
+Would make a cool screen saver, although the hypnotic compulsion to dive in might be a bit distracting.""",
                       "things": [],
                       "exits": {"south": "Stairwell (3)", "north": "Doom"},
                         "obstacles": {"north":

@@ -15,7 +15,7 @@ defined in locations dictionary, imported from adventure_data.py.
 
 import random
 # Import the game data
-from adventure_data import items, locations
+from adventure_data import intro_text, items, locations
 
 class Adventure(object):
     """Text Adventure
@@ -23,9 +23,11 @@ class Adventure(object):
     Args:
         start_location - dictionary key of start location from locations dict
     """
-    def __init__(self, start_location="Start"):
+    def __init__(self, start_text, start_location="Start"):
         # Movement directions supported
         self.directions = ["north", "south", "east", "west", "up", "down"]
+        # Game start text info
+        self.start_text = start_text
         # Player's location
         self.current_location = locations.get(start_location)
         # Holds last input from user as dictionary of words
@@ -66,20 +68,7 @@ class Adventure(object):
 
     def show_start_text(self):
         """Display introductory message"""
-        text = """Tickety-Boo
-
-Following an enjoyable evening carousing in a local pub you
-have returned to the office to retrieve you laptop which you
-prudently left in your locker.
-
-The building seems eerily unfamiliar at this hour but
-surely this is a simple task even though you are somewhat
-befuddled.
-
-Goal: get your laptop and go home.
-
-Type 'help' for some info."""
-        self.show(text)
+        self.show(self.start_text)
 
     def display_info(self):
         """Show information about current location"""
@@ -90,7 +79,7 @@ Type 'help' for some info."""
         # Show items present
         things = cl.get("things", "")
         if things:
-            self.show("You can see: " + ", ".join(things))
+            self.show("You can see: " + ", ".join(self.make_item_list(things)))
         # Show exits
         self.show("Obvious exits: " +
                   " - ".join(["{} to {}".format(direction.capitalize(), locations[location]["name"])
@@ -108,6 +97,14 @@ Type 'help' for some info."""
         """Return exits available from current location"""
         return [e for e in self.directions
                 if e in self.current_location["exits"]]
+    
+    def make_item_list(self, item_list):
+        """Return formatted list of items in form item name (key)
+        from supplied list of item keys
+        Args:
+            item_list - list of item keys to be included
+        """
+        return ["{} ({})".format(items[item]["name"], item) for item in item_list]
 
     def parse(self):
         """Simple verb-noun parser.
@@ -176,31 +173,33 @@ Type 'help' for some info."""
                     self.show("You drop the {}.".format(noun))
                 else:
                     self.show("No {} to drop.".format(noun))
-
+                    
         def v_take(noun):
             """Take item (or all items) from location and place in inventory"""
+            # Idenfify items present in the current location
             available_things = self.current_location.get("things", [])
-            # Take all available items
+            # Set the things we're going to try to pick up
             if noun == "all":
-                if available_things:
-                    self.show("You pick up: " + ", ".join(available_things))
-                    self.inventory.extend(available_things)
-                    available_things.clear()
-                else:
-                    self.show("There's nothing to pick up.")
-            # Take individual item
+                choices = available_things[:]
             else:
-                if noun in available_things:
-                    self.inventory.append(noun)
-                    available_things.remove(noun)
-                    self.show("You pick up the {}.".format(noun))
+                choices = [noun]
+            # Display message if nothing to pick up.
+            if not choices:
+                self.show("There's nothing to pick up.")
+            # Try to pick up each item
+            for choice in choices:
+                if choice in available_things:
+                    self.inventory.append(choice)
+                    available_things.remove(choice)
+                    self.show("You pick up the {}.".format(choice))
+                # Can't pick up because choice not present
                 else:
-                    self.show("No {} to pick up.".format(noun))
+                    self.show("No {} to pick up.".format(choice))
 
         def v_examine(item):
             """Display item's description, if item available"""
             if item in self.inventory or item in self.current_location.get("things", []):
-                self.show("A " + items[item]["description"])
+                self.show(items[item]["description"])
             else:
               self.show("Can't see {} to examine.".format(item))  
 
@@ -220,7 +219,8 @@ Type 'help' for some info."""
         def v_inv(_):
             """Display contents of inventory."""
             if self.inventory:
-                self.show("You have: " + ", ".join(self.inventory))
+                things = self.make_item_list(self.inventory)
+                self.show("You have: " + ", ".join(things))
             else:
                 self.show("You have nothing.")
 
@@ -274,4 +274,4 @@ Type 'help' for some info."""
 
 
 if __name__ == "__main__":
-    go = Adventure()
+    go = Adventure(start_text = intro_text)
