@@ -17,6 +17,7 @@ import random
 # Import the game data
 from adventure_data import intro_text, items, locations
 
+
 class Adventure(object):
     """Text Adventure
     Relies on data in items and locations dictionaries.

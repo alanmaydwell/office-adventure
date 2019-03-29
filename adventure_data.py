@@ -30,6 +30,9 @@ items = {
              "statuses": ["movable"]
              },
     
+    "book": {"name": "The Necronomicon Guide To Interior Design",
+             "description": "The text is in an unrecognisable language. There are several illustractions, all of which are incomprehensible and disturbing."},
+    
     "cake": {"name": "Green Cake",
              "description": "Round cake with green icing",
              "statuses": ["movable"],
@@ -66,7 +69,7 @@ locations = {
                 "exits": {"north": "Start"}
                 },
     
-    "Atrium": {"name": "Atrium", "description": "Spacious area. At the centre there is a sculpture made from giant wooden coat-hangers.",
+    "Atrium": {"name": "Atrium", "description": "Spacious area. At the centre there is a sculpture made from giant wooden coat-hangers. Several posters advertise Bring Your Pet To Work Day, which was today.",
               "things": [],
               "exits": {"north": "Coffee Shop", "south": "Start", "east": "Stairwell (G)", "west": "West Side"}
               },
@@ -77,8 +80,13 @@ locations = {
     
     "Coffee Shop": {"name": "Coffee Shop", "description": "Crumbs litter the floor but the shelves are depleted.",
                    "things": ["cake"],
-                   "exits": {"south": "Atrium"}
+                   "exits": {"north": "Library", "south": "Atrium"}
                    },
+    
+    "Library": {"name": "Library", "description": "Ranks of metal shelves hold a multitude of documents.",
+                "things": ["book"],
+                "exits": {"south": "Coffee Shop"}
+                },
     
     "Doom": {"name": "Enter the Doom Vortex" , "description": "SHOULD NOT BE ABLE TO REACH 'DOOM'!"},
     
