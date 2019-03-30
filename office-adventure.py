@@ -49,6 +49,7 @@ class Adventure(object):
             self.get_input()
             self.parse()
             self.extra_stuff()
+            self.items_present_check(["cake", "book"])
         # End message
         self.show("Bye!")
             
@@ -272,6 +273,30 @@ class Adventure(object):
                                   "Urgle?",
                                   "Kindly rephrase."])
             self.show(message)
+
+
+    def items_present_check(self, items, in_inventory=False):
+        """Check if the listed items are all present in either: (a) the current location
+        or (b) player's inventory.
+        Args:
+            items - items to check (in list or similar container)
+            in_inventory (bool) - when True check inventory, otherwise check
+                                 current location
+        Returns:
+                True/False
+        """
+        status = False
+
+        # 
+        # Using sets for convenient comparison
+        if in_inventory:
+            compare_items = set(self.inventory)
+        else:
+            compare_items = set(self.current_location.get("things", []))
+        
+        status = set(items).issubset(compare_items)
+        print(items, compare_items, status)
+        return status
 
 
 if __name__ == "__main__":

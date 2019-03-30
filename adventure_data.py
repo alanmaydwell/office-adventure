@@ -25,10 +25,8 @@ Type 'help' for some info."""
 # Items
 # Each item must have a name and description. Other values, e.g. "statuses" not currently used.
 items = {
-    "pass": {"name": "Security Pass",
-             "description": "Security pass bearing name name 'Rowley Birkin'.",
-             "statuses": ["movable"]
-             },
+
+    "antipasti": {"name": "A selection of Italian starters.", "description": "Wikipedia:  cured meats, olives, peperoncini, mushrooms, anchovies, artichoke hearts, various cheeses (such as provolone or mozzarella), pickled meats, and vegetables in oil or vinegar."},
     
     "book": {"name": "The Necronomicon Guide To Interior Design",
              "description": "The text is in an unrecognisable language. There are several illustractions, all of which are incomprehensible and disturbing."},
@@ -39,8 +37,15 @@ items = {
              "things": ["locker key"]
              },
     
-    "fish": {"name": "Herring", "description": "Somewhat crimson in hue"}
+    "fish": {"name": "Herring", "description": "Somewhat crimson in hue"},
 
+
+    "pass": {"name": "Security Pass",
+             "description": "Security pass bearing name name 'Rowley Birkin'.",
+             "statuses": ["movable"]
+             },
+        
+    "pasty": {"name": "Cornish Pasty", "description": "Partly eaten."}
     }
 
 
