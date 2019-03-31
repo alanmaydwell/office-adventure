@@ -53,22 +53,28 @@ items = {
 # Each location must have a name and description
 # "things" holds items present in the location
 # "exits" defines areas accessed in particular directions
-# "obstacles" contains optional inventory-based conditional behaviour triggered by upon moving to another location.
+# "events" contains optional conditional behaviour triggered upon attempted move to another location.
       
 locations = {
     "Start": {"name": "Entryway", "description": "A dull office foyer with a seemingly deserted reception desk. Automatic barriers prevent ne'er-do-wells from wandering further.",
               "things": ["pass"],
               "exits": {"north": "Atrium", "south": "Outside"},
-              "obstacles": {"north": {"need": "pass",
-                                      "pass_text": "The pass enables you to cross the security gates.",
-                                      "fail_text": "The security gates bar your way."},
-                            "south": {"need": "laptop",
-                                      "pass_text": "Well done - mission accomplished!. You've retrieved your laptop and left the building. You now just have to make your way home (in a yet-to-be-written sequel).",
-                                      "fail_text": "You're not leaving without your laptop - that's the whole point!",
-                                      }
+              
+              "events": {"north": {"needs": {"player_needs": ["pass"]},
+                                   "pass_outcomes":{"message": "The pass enables you to cross the security gates."},
+                                   "fail_outcomes":{"message": "The security gates bar your way."}
+                                   },
+                         
+                         "south": {"needs": {"player_needs": ["laptop"]},
+                                   "pass_outcomes": {"message": "Well done - mission accomplished!. You've retrieved your laptop and left the building. You now just have to make your way home (in a yet-to-be-written sequel)."},
+                                   "fail_outcomes": {"message": "You're not leaving without your laptop - that's the whole point!"},
+                                    },
                             },
               },
-    
+  
+  
+  
+  
     "Outside": {"name": "Outside", "description": "The street outside. If you've made it here, you've completed the game!",
                 "things": [],
                 "exits": {"north": "Start"}
@@ -80,6 +86,7 @@ locations = {
               },
     
     "West Side": {"name": "West Side", "description": "A maze of twisty offices, all alike. Well off your route, so not worth exploring.",
+                  "things": [],
                   "exits": {"east": "Atrium"}
                   },
     
@@ -116,11 +123,12 @@ locations = {
                       "description": "The wall is adorned with a mesmerising pattern of triangles, slightly different from those on the second floor, and might also owe more to Escher than Euclid.",
                       "things": [],
                       "exits": {"down": "Stairwell (2)", "up": "Stairwell (4)", "north": "Vortex"},
-                      "obstacles": {"up":
-                                    {"need": "oxygen",
-                                     "pass_text": "YOU'RE NOT SUPPOSED TO GET THIS FAR!",
-                                     "fail_text": "Gasping for breath you are unable to ascend further possibly because the air is too thin, or perhaps your feeble legs are too knackered."}
+                      "events": {"up":
+                                    {"needs": {"player_needs": ["oxygen"]},
+                                     "pass_outcomes": {"message": "YOU'RE NOT SUPPOSED TO GET THIS FAR!"},
+                                     "fail_outcomes": {"message": "Gasping for breath you are unable to ascend further possibly because the air is too thin, or perhaps your feeble legs are too knackered."}
                                     }
+                                 }
                       },
     
     "Stairwell (4)": {"name": "Stairwell (4)", "description": "SHOULD NOT BE ABLE TO REACH 4TH FLOOR!"},
@@ -146,17 +154,18 @@ locations = {
 Would make a cool screen saver, although the hypnotic compulsion to dive in might be a bit distracting.""",
                       "things": [],
                       "exits": {"south": "Stairwell (3)", "north": "Doom"},
-                        "obstacles": {"north":
-                                    {"need": "",
-                                     "pass_text": "YOU'RE NOT SUPPOSED TO GET THIS FAR!",
-                                     "fail_text": """That was a bit rash!
+                     "events": {"north":
+                                    {"needs": {"player_needs": [""]},
+                                     "pass_outcomes": {"message": "YOU'RE NOT SUPPOSED TO GET THIS FAR!"},
+                                     "fail_outcomes": {"message": """That was a bit rash!
 You shatter into countless fragments with the following words echoing
 in the fading remnants of your conciousness: 
 'That which dies shall still know life in death for all that decays is not forgotten
 and reanimated it shall walk the world in the bliss of not-knowing.
 And then there shall be a fire that knows the naming of you, and in the presence of the
 strangling fruit, its dark flame shall acquire every part of you that remains.'\n """,
-                                     "location_after_fail": "Start"}
+                                     "new_location": "Start"}
+                                     }
                                     }               
                       },
 }

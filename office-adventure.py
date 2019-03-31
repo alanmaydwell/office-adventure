@@ -49,7 +49,9 @@ class Adventure(object):
             self.get_input()
             self.parse()
             self.extra_stuff()
-            self.items_present_check(["cake", "book"])
+            # Trying things
+            ##self.items_present_check(["cake", "book"])
+            ##self.event_check(location_needs=["cake", "book"])
         # End message
         self.show("Bye!")
             
@@ -128,18 +130,19 @@ class Adventure(object):
             if len(noun) == 1:
                 noun = {d[0]:d for d in self.directions}.get(noun, "")
                 
-            # Check for blocking condition
-            obstacle = self.current_location.get("obstacles", {}).get(noun, {})
-            if obstacle:
-                if obstacle["need"] in self.inventory:
-                    self.show(obstacle["pass_text"])
-                else:
-                    self.show(obstacle["fail_text"])
-                    # Teleport to new location if one set on fail condition
-                    if obstacle.get("location_after_fail", ""):
-                        self.current_location = locations.get(obstacle["location_after_fail"])
-                        self.display_info()
+            # Check for event associated with the particular move
+            event = self.current_location.get("events", {}).get(noun, {})
+            # If there's an event, see if event passes/fails
+            if event:
+                result = self.event_check(**event["needs"])
+                # Process outcomes of pass/fail
+                if result == False:
+                    self.event_outcomes(**event["fail_outcomes"])
+                    # don't move to new location if event didn't pass
                     return
+                else:
+                    self.event_outcomes(**event["pass_outcomes"])
+                    
             
             # See if there is an available destination in chosen direction
             destination = self.current_location["exits"].get(noun, "")
@@ -275,19 +278,62 @@ class Adventure(object):
             self.show(message)
 
 
-    def items_present_check(self, items, in_inventory=False):
+
+    # Methods dealing with events that depend on presence/absence of items
+    # in current location or player inventory. 
+
+    def event_check(self, player_needs=(), location_needs=(), location_not_needs=(), **kwargs):
+        """Check prerequisites for an action
+        Can be any combination of player needs, location needs or location not needs.
+        Args:
+            player_needs - list of item(s) the player needs in inventory for "pass" result
+            location_needs - list of items needed in location for "pass" result
+            location_not_needs - list of items absent from location for "pass" result
+        Returns:
+            Pass/Fail - fails if any condition fails
+
+        """
+        outcomes = []
+        
+        if player_needs:
+            temp = self.items_present_check(items=player_needs, in_inventory=True)
+            outcomes.append(temp)
+        if location_needs:
+            temp = self.items_present_check(items=location_needs, in_inventory=False)
+            outcomes.append(temp)
+        if location_not_needs:
+            temp = self.items_present_check(items=location_not_needs,
+                                            in_inventory=False,
+                                            invert=True)
+            outcomes.append(temp)
+        
+        return False not in outcomes 
+        
+
+    def event_outcomes(self, message="", new_location="", **kwargs):
+        """Process event outcome
+        Will likely expand to cover add/remove item(s) from location/player
+        """
+        if message:
+            self.show(message)
+        if new_location:
+            self.current_location = locations.get(new_location)
+
+
+    def items_present_check(self, items, in_inventory=False, invert=False):
         """Check if the listed items are all present in either: (a) the current location
-        or (b) player's inventory.
+        or (b) player's inventory. Alternatively, do the reverse, i.e. check not present
+        when invert flag set.
         Args:
             items - items to check (in list or similar container)
             in_inventory (bool) - when True check inventory, otherwise check
                                  current location
+            invert - reverse the response (effecitively reverse the check to "not present")
         Returns:
                 True/False
         """
         status = False
 
-        # 
         # Using sets for convenient comparison
         if in_inventory:
             compare_items = set(self.inventory)
@@ -295,8 +341,13 @@ class Adventure(object):
             compare_items = set(self.current_location.get("things", []))
         
         status = set(items).issubset(compare_items)
-        print(items, compare_items, status)
+        
+        #Invert the result if flag set
+        if invert:
+            satus = not status
         return status
+
+
 
 
 if __name__ == "__main__":
