@@ -15,7 +15,7 @@ defined in locations dictionary, imported from adventure_data.py.
 
 import random
 # Import the game data
-from adventure_data import intro_text, items, locations
+from adventure_data import intro_text, items, locations, item_events
 
 
 class Adventure(object):
@@ -49,6 +49,7 @@ class Adventure(object):
             self.get_input()
             self.parse()
             self.extra_stuff()
+            self.item_events_check()
             # Trying things
             ##self.items_present_check(["cake", "book"])
             ##self.event_check(location_needs=["cake", "book"])
@@ -194,9 +195,13 @@ class Adventure(object):
             # Try to pick up each item
             for choice in choices:
                 if choice in available_things:
-                    self.inventory.append(choice)
-                    available_things.remove(choice)
-                    self.show("You pick up the {}.".format(choice))
+                    # Can't pick up item with "fixed" status
+                    if "fixed" in  items[choice].get("statuses", []):
+                        self.show("You are unable to lift the {}.".format(choice))
+                    else:
+                        self.inventory.append(choice)
+                        available_things.remove(choice)
+                        self.show("You pick up the {}.".format(choice))
                 # Can't pick up because choice not present
                 else:
                     self.show("No {} to pick up.".format(choice))
@@ -280,7 +285,18 @@ class Adventure(object):
 
 
     # Methods dealing with events that depend on presence/absence of items
-    # in current location or player inventory. 
+    # in current location or player inventory.
+    def item_events_check(self):
+        """Check each item event
+        Events based on items present in current location
+        """
+        for event in item_events:
+            result = self.event_check(**event.get("needs", {}))
+            if result:
+                self.event_outcomes(**event.get("pass_outcome", {}))
+            else:
+                self.event_outcomes(**event.get("fail_outcome", {}))
+                
 
     def event_check(self, player_needs=(), location_needs=(), location_not_needs=(), **kwargs):
         """Check prerequisites for an action
@@ -310,7 +326,7 @@ class Adventure(object):
         return False not in outcomes 
         
 
-    def event_outcomes(self, message="", new_location="", **kwargs):
+    def event_outcomes(self, message="", new_location="", remove_location_items=(), **kwargs):
         """Process event outcome
         Will likely expand to cover add/remove item(s) from location/player
         """
@@ -318,7 +334,12 @@ class Adventure(object):
             self.show(message)
         if new_location:
             self.current_location = locations.get(new_location)
-
+        #Remove items from current location
+        for item in remove_location_items:
+            location_items = self.current_location.get("things", [])
+            if item in location_items:
+                location_items.remove(item)
+            
 
     def items_present_check(self, items, in_inventory=False, invert=False):
         """Check if the listed items are all present in either: (a) the current location

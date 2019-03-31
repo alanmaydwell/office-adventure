@@ -23,17 +23,24 @@ Type 'help' for some info."""
 
 
 # Items
-# Each item must have a name and description. Other values, e.g. "statuses" not currently used.
+# Each item must have a name and description.
+# Optional "statuses" list. If includes "fixed" the items cannot be picked-up/moved
 items = {
 
-    "antipasti": {"name": "A selection of Italian starters.", "description": "Wikipedia:  cured meats, olives, peperoncini, mushrooms, anchovies, artichoke hearts, various cheeses (such as provolone or mozzarella), pickled meats, and vegetables in oil or vinegar."},
+    "antipasti": {"name": "A selection of Italian starters.",
+                  "description": "Wikipedia:  cured meats, olives, peperoncini, mushrooms, anchovies, artichoke hearts, various cheeses (such as provolone or mozzarella), pickled meats, and vegetables in oil or vinegar."},
     
     "book": {"name": "The Necronomicon Guide To Interior Design",
              "description": "The text is in an unrecognisable language. There are several illustractions, all of which are incomprehensible and disturbing."},
     
+    "boulder": {"name": "Large Boulder",
+                "description": "Possibly granite.",
+                "statuses": ["fixed"] # Cannot be moved
+                },
+    
+    
     "cake": {"name": "Green Cake",
              "description": "Round cake with green icing",
-             "statuses": ["movable"],
              "things": ["locker key"]
              },
     
@@ -42,11 +49,22 @@ items = {
 
     "pass": {"name": "Security Pass",
              "description": "Security pass bearing name name 'Rowley Birkin'.",
-             "statuses": ["movable"]
              },
+    
+    "paper": {"name": "Sheet of paper", "description": "Pretty large, would even dwarf A0."},
         
     "pasty": {"name": "Cornish Pasty", "description": "Partly eaten."}
     }
+
+
+# item events
+# Define events that automatically take place when particular item combinations are present in
+# the player location regardless of the location itself.
+# Triggered by items only. However, if one or more of them are not mobile, then event indirectly
+# associated with a particular location can be established.
+item_events = [{"needs": {"location_needs": ["pass"]}, "pass_outcome": {"message": "Ooh, is that a pass?"}},
+               {"needs": {"location_needs": ["paper", "boulder"]}, "pass_outcome": {"message": "Paper wraps stone! They both vanish!", "remove_location_items": ["paper", "boulder"]}}
+               ]
 
 
 # Location definitions
@@ -54,9 +72,12 @@ items = {
 # "things" holds items present in the location
 # "exits" defines areas accessed in particular directions
 # "events" contains optional conditional behaviour triggered upon attempted move to another location.
+# Can depend upon contents of player inventory, things in location, things absent from location.
+#  When event fails movement in that direction is blocked, plus optional defined outcomes can also be set. 
       
 locations = {
-    "Start": {"name": "Entryway", "description": "A dull office foyer with a seemingly deserted reception desk. Automatic barriers prevent ne'er-do-wells from wandering further.",
+    "Start": {"name": "Entryway",
+              "description": "A dull office foyer with a seemingly deserted reception desk. Automatic barriers prevent ne'er-do-wells from wandering further.",
               "things": ["pass"],
               "exits": {"north": "Atrium", "south": "Outside"},
               
@@ -95,6 +116,11 @@ locations = {
                    "exits": {"north": "Library", "south": "Atrium"}
                    },
     
+    "Corridor (2)": {"name": "Corridor (2)", "description": "An unremarkable corridor",
+                     "things": ["boulder"],
+                     "exits": {"south": "Stairwell (2)"}
+        },
+    
     "Library": {"name": "Library", "description": "Ranks of metal shelves hold a multitude of documents.",
                 "things": ["book"],
                 "exits": {"south": "Coffee Shop"}
@@ -110,13 +136,13 @@ locations = {
     "Stairwell (1)": {"name": "Stairwell (1)",
                       "description": "The wall is adorned with a mesmerising pattern of triangles.",
                       "things": [],
-                      "exits": {"down": "Stairwell (G)", "up": "Stairwell (2)"},
+                      "exits": {"down": "Stairwell (G)", "up": "Stairwell (2)", "north": "Stationery Store"},
                       },
 
     "Stairwell (2)": {"name": "Stairwell (2)",
                       "description": "The wall is adorned with a mesmerising pattern of triangles, slightly different from those on the first floor.",
                       "things": [],
-                      "exits": {"down": "Stairwell (1)", "up": "Stairwell (3)"},
+                      "exits": {"down": "Stairwell (1)", "up": "Stairwell (3)", "north": "Corridor (2)"},
                       },
     
     "Stairwell (3)": {"name": "Stairwell (3)",
@@ -137,6 +163,11 @@ locations = {
                       "things": [],
                       "exits": {"up": "Stairwell (G)", "north": "Carpark"}
                       },
+    
+    "Stationery Store": {"name": "Stationery Store", "description": "It also appears to be stationary but it's the one with the 'e' in it.",
+                         "things": ["paper"],
+                         "exits": {"south": "Stairwell (1)"}},
+    
 
     "Carpark": {"name": "Carpark", "description": "Underground carpark. No cars are present.",
                       "things": ["fish"],
