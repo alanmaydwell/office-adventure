@@ -14,6 +14,7 @@ defined in locations dictionary, imported from adventure_data.py.
 
 
 import random
+import textwrap
 # Import the game data
 from adventure_data import intro_text, items, locations, item_events
 
@@ -46,13 +47,10 @@ class Adventure(object):
         self.show_start_text()
         self.display_info()
         while self.keep_going:
+            self.extra_stuff()
             self.get_input()
             self.parse()
-            self.extra_stuff()
             self.item_events_check()
-            # Trying things
-            ##self.items_present_check(["cake", "book"])
-            ##self.event_check(location_needs=["cake", "book"])
         # End message
         self.show("Bye!")
             
@@ -67,27 +65,40 @@ class Adventure(object):
             elif option == 3:
                 self.show("What was that noise, 'Iä! Iä! Cthulhu fhtagn'?")
 
-    def show(self, text):
-        """Display output - currently just uses print"""
-        print(text)
+    def show(self, text, line_length=80, add_line=False):
+        """Display output - currently just uses print and textwrap
+        Args:
+            text - text to be displayed
+            line_length (int) - line-length used for text wrapiing
+            add_line (bool) - when True, add blank line between paragraphs
+        """
+        # Using textwrap.fill to set line length. However, it also
+        # removes any new lines (even when drop_whitespace=False)
+        # causing existing paragraphs to be lost. Have added
+        # paragraph splitting here first, so textwrap only
+        # applied to one paragraph at a time.
+        for paragraph in text.splitlines():
+            print(textwrap.fill(paragraph, line_length))
+        if add_line:
+            print("")
 
     def show_start_text(self):
         """Display introductory message"""
-        self.show(self.start_text)
+        self.show(self.start_text, add_line=True)
 
     def display_info(self):
         """Show information about current location"""
         cl = self.current_location
         # Show locations name and description
-        self.show("\n[" + cl.get("name") + "]")
-        self.show(cl.get("description"))
+        self.show("[" + cl.get("name") + "]", add_line=False)
+        self.show(cl.get("description"), add_line=True)
         # Show items present
         things = cl.get("things", "")
         if things:
             self.show("You can see: " + ", ".join(self.make_item_list(things)))
         # Show exits
         self.show("Obvious exits: " +
-                  " - ".join(["{} to {}".format(direction.capitalize(), locations[location]["name"])
+                  " ".join(["[{} to {}]".format(direction.capitalize(), locations[location]["name"])
                              for direction, location in cl.get("exits", {}).items()]))
         
     def get_input(self, prompt=">"):
@@ -164,9 +175,10 @@ class Adventure(object):
             # Drop "all"
             if noun == "all":
                 if self.inventory:
+                    for item in self.inventory:
+                        self.show("You drop the " + item)
                     # handy - extend method can be used to combine elements of two lists
                     # (unlike append which puts list inside list)
-                    self.show("You drop: " + ", ".join(self.inventory))
                     self.current_location.get("things", []).extend(self.inventory)
                     self.inventory.clear()
                 else:

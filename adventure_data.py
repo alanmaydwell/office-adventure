@@ -8,18 +8,13 @@ One fragment of text taken from Annihilation by Jeff Vandermeer.
 # Introductory text
 intro_text = """Tickety-Boo
 
-Following an enjoyable evening carousing in a local pub you
-have returned to the office to retrieve you laptop which you
-prudently left in your locker.
+Following an enjoyable evening carousing in a local pub you have returned to the office to retrieve you laptop which you prudently left in your locker.
 
-The building seems eerily unfamiliar at this hour but
-surely this is a simple task even though you are somewhat
-befuddled.
+The building seems eerily unfamiliar at this hour but surely this is a simple task even though you are somewhat befuddled.
 
 Goal: get your laptop and go home.
 
 Type 'help' for some info."""
-
 
 
 # Items
@@ -191,10 +186,8 @@ Would make a cool screen saver, although the hypnotic compulsion to dive in migh
                                      "fail_outcomes": {"message": """That was a bit rash!
 You shatter into countless fragments with the following words echoing
 in the fading remnants of your conciousness: 
-'That which dies shall still know life in death for all that decays is not forgotten
-and reanimated it shall walk the world in the bliss of not-knowing.
-And then there shall be a fire that knows the naming of you, and in the presence of the
-strangling fruit, its dark flame shall acquire every part of you that remains.'\n """,
+'That which dies shall still know life in death for all that decays is not forgotten and reanimated it shall walk the world in the bliss of not-knowing. And then there shall be a fire that knows the naming of you, and in the presence of the strangling fruit, its dark flame shall acquire every part of you that remains.'
+Woozily you look around and find your surroundings are all too familiar - or are they?""",
                                      "new_location": "Start"}
                                      }
                                     }               
